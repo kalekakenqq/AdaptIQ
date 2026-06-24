@@ -1,18 +1,30 @@
 """Получение семантических эмбеддингов текста через sentence-transformers."""
 
+import logging
 from functools import lru_cache
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from backend.config import get_settings
 
+logger = logging.getLogger(__name__)
+
 settings = get_settings()
+
+try:
+    from sentence_transformers import SentenceTransformer
+
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    logger.warning("sentence-transformers не установлен, семантические эмбеддинги недоступны")
 
 
 @lru_cache
-def get_embedding_model() -> SentenceTransformer:
+def get_embedding_model() -> "SentenceTransformer":
     """Возвращает закэшированную модель sentence-transformers."""
+    if not SENTENCE_TRANSFORMERS_AVAILABLE:
+        raise RuntimeError("sentence-transformers не установлен, эмбеддинги недоступны")
     return SentenceTransformer(settings.sentence_transformer_model, device=settings.ml_device)
 
 
