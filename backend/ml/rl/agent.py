@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 
 import numpy as np
-from stable_baselines3 import PPO
 
 from backend.ml.rl.environment import LearningSessionEnv
 
@@ -12,11 +11,22 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_MODEL_PATH = Path(__file__).resolve().parent / "weights" / "ppo_adaptive_agent.zip"
 
+try:
+    from stable_baselines3 import PPO
+
+    STABLE_BASELINES3_AVAILABLE = True
+except ImportError:
+    STABLE_BASELINES3_AVAILABLE = False
+    logger.warning("stable-baselines3/torch не установлены, rl-агент недоступен")
+
 
 class AdaptiveAgent:
     """Обёртка над PPO-моделью для рекомендации следующего шага обучения."""
 
     def __init__(self, model_path: Path = DEFAULT_MODEL_PATH) -> None:
+        if not STABLE_BASELINES3_AVAILABLE:
+            raise RuntimeError("stable-baselines3/torch не установлены, rl-агент недоступен")
+
         self._env = LearningSessionEnv()
         if model_path.exists():
             self._model = PPO.load(model_path, env=self._env)
