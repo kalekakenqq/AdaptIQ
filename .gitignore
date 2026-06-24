@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# env
+.env
+.env.local
+
+# Node / Vue
+node_modules/
+frontend/dist/
+.vite/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ML артефакты
+*.pt
+*.pth
+*.ckpt
+*.onnx
+ml_training/checkpoints/
+ml_training/runs/
+backend/ml/**/weights/
+
+# Docker
+*.log
+
+# Базы данных локально
+postgres_data/
+neo4j_data/
+redis_data/
