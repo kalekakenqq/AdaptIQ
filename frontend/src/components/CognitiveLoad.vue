@@ -14,26 +14,14 @@ function levelLabel(index) {
 </script>
 
 <template>
-  <div class="cognitive-load">
-    <h3>Когнитивная нагрузка</h3>
-    <div class="bar">
-      <div class="bar-fill" :style="{ width: `${index * 100}%` }"></div>
+  <div class="card p-5">
+    <h3 class="mb-3 text-sm font-medium text-text/70">Когнитивная нагрузка</h3>
+    <div class="h-2 w-full overflow-hidden rounded-full bg-white/10">
+      <div
+        class="h-full rounded-full bg-gradient-to-r from-accent to-orange-400 transition-all duration-300"
+        :style="{ width: `${index * 100}%` }"
+      ></div>
     </div>
-    <p>{{ levelLabel(index) }} ({{ (index * 100).toFixed(0) }}%)</p>
+    <p class="mt-2 text-sm text-text/60">{{ levelLabel(index) }} ({{ (index * 100).toFixed(0) }}%)</p>
   </div>
 </template>
-
-<style scoped>
-.bar {
-  width: 100%;
-  height: 12px;
-  background: #eee;
-  border-radius: 6px;
-  overflow: hidden;
-}
-.bar-fill {
-  height: 100%;
-  background: #ff7043;
-  transition: width 0.3s ease;
-}
-</style>
