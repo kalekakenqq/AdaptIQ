@@ -1,13 +1,26 @@
 """Визуализация attention-весов трансформера RuBERT."""
 
+import logging
+
 import numpy as np
-import torch
 
 from backend.ml.nlp.answer_evaluator import get_rubert
+
+logger = logging.getLogger(__name__)
+
+try:
+    import torch
+
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    logger.warning("torch не установлен, визуализация attention недоступна")
 
 
 def get_attention_weights(text: str) -> np.ndarray:
     """Возвращает усреднённую по головам матрицу attention последнего слоя RuBERT."""
+    if not TORCH_AVAILABLE:
+        raise RuntimeError("torch не установлен, визуализация attention недоступна")
     tokenizer, model = get_rubert()
     tokens = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
 
