@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     postgres_user: str = "adaptiq"
     postgres_password: str = "adaptiq"
     postgres_db: str = "adaptiq"
-    database_url: str = "postgresql+asyncpg://adaptiq:adaptiq@localhost:5432/adaptiq"
+    database_url: str = "sqlite+aiosqlite:////data/adaptiq.db"
 
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
