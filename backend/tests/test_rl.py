@@ -9,7 +9,9 @@ from backend.ml.rl.reward import compute_reward
 
 def test_compute_reward_higher_for_correct_answer() -> None:
     """Награда за правильный ответ должна быть выше, чем за неправильный."""
-    reward_correct = compute_reward(answer_is_correct=True, cognitive_load_index=0.2, progress_delta=0.1)
+    reward_correct = compute_reward(
+        answer_is_correct=True, cognitive_load_index=0.2, progress_delta=0.1
+    )
     reward_incorrect = compute_reward(
         answer_is_correct=False, cognitive_load_index=0.2, progress_delta=0.1
     )

@@ -25,5 +25,5 @@ def get_token_importance(text: str) -> dict[str, float]:
     tokens = tokenizer.tokenize(text)
     attention_matrix = get_attention_weights(text)
 
-    cls_attention = attention_matrix[0, 1 : len(tokens) + 1]
+    cls_attention = attention_matrix[0, 1:len(tokens) + 1]
     return {token: float(score) for token, score in zip(tokens, cls_attention)}

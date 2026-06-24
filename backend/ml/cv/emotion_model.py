@@ -25,7 +25,9 @@ class EmotionCNN(nn.Module):
         return self.backbone(x)
 
 
-def load_emotion_model(weights_path: Path = DEFAULT_WEIGHTS_PATH, device: str = "cpu") -> EmotionCNN:
+def load_emotion_model(
+    weights_path: Path = DEFAULT_WEIGHTS_PATH, device: str = "cpu"
+) -> EmotionCNN:
     """Загружает модель эмоций, при отсутствии весов возвращает предобученный backbone."""
     model = EmotionCNN(pretrained=weights_path.exists() is False)
     if weights_path.exists():

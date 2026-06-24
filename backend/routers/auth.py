@@ -17,7 +17,9 @@ async def register(data: UserCreate, db: AsyncSession = Depends(get_db)) -> User
     """Регистрирует нового пользователя."""
     existing = await db.execute(select(User).where(User.email == data.email))
     if existing.scalar_one_or_none() is not None:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "пользователь с таким email уже существует")
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "пользователь с таким email уже существует"
+        )
 
     user = User(
         email=data.email,

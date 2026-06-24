@@ -3,7 +3,9 @@
 import numpy as np
 
 
-def probability_correct_answer(ability: float, difficulty: float, discrimination: float = 1.0) -> float:
+def probability_correct_answer(
+    ability: float, difficulty: float, discrimination: float = 1.0
+) -> float:
     """Вычисляет вероятность правильного ответа по 2PL-модели IRT.
 
     ability — способность студента (theta), difficulty — сложность вопроса (b),
@@ -13,7 +15,9 @@ def probability_correct_answer(ability: float, difficulty: float, discrimination
     return float(1.0 / (1.0 + np.exp(-exponent)))
 
 
-def estimate_ability(answers_correct: list[bool], difficulties: list[float], iterations: int = 50) -> float:
+def estimate_ability(
+    answers_correct: list[bool], difficulties: list[float], iterations: int = 50
+) -> float:
     """Оценивает способность студента (theta) методом градиентного подъёма по правдоподобию."""
     ability = 0.0
     learning_rate = 0.1
