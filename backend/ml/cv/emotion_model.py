@@ -1,34 +1,55 @@
 """CNN-классификатор эмоций на базе EfficientNet-B0 (transfer learning)."""
 
+import logging
 from pathlib import Path
 
-import torch
-from torch import nn
-from torchvision.models import efficientnet_b0
+logger = logging.getLogger(__name__)
 
 EMOTION_LABELS = ["neutral", "happy", "sad", "surprised", "confused", "frustrated", "bored"]
 
 DEFAULT_WEIGHTS_PATH = Path(__file__).resolve().parent / "weights" / "emotion_cnn.pt"
 
+try:
+    import torch
+    from torch import nn
+    from torchvision.models import efficientnet_b0
 
-class EmotionCNN(nn.Module):
-    """CNN для классификации эмоций по лицу студента."""
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    logger.warning("torch/torchvision не установлены, модуль эмоций недоступен")
 
-    def __init__(self, num_classes: int = len(EMOTION_LABELS), pretrained: bool = True) -> None:
-        super().__init__()
-        self.backbone = efficientnet_b0(weights="DEFAULT" if pretrained else None)
-        in_features = self.backbone.classifier[1].in_features
-        self.backbone.classifier[1] = nn.Linear(in_features, num_classes)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Прямой проход: изображение лица -> логиты эмоций."""
-        return self.backbone(x)
+if TORCH_AVAILABLE:
+
+    class EmotionCNN(nn.Module):
+        """CNN для классификации эмоций по лицу студента."""
+
+        def __init__(self, num_classes: int = len(EMOTION_LABELS), pretrained: bool = True) -> None:
+            super().__init__()
+            self.backbone = efficientnet_b0(weights="DEFAULT" if pretrained else None)
+            in_features = self.backbone.classifier[1].in_features
+            self.backbone.classifier[1] = nn.Linear(in_features, num_classes)
+
+        def forward(self, x: "torch.Tensor") -> "torch.Tensor":
+            """Прямой проход: изображение лица -> логиты эмоций."""
+            return self.backbone(x)
+
+else:
+
+    class EmotionCNN:  # type: ignore[no-redef]
+        """Заглушка модели эмоций при отсутствии torch."""
+
+        def __init__(self, *args, **kwargs) -> None:
+            raise RuntimeError("torch/torchvision не установлены, модель эмоций недоступна")
 
 
 def load_emotion_model(
     weights_path: Path = DEFAULT_WEIGHTS_PATH, device: str = "cpu"
-) -> EmotionCNN:
+) -> "EmotionCNN":
     """Загружает модель эмоций, при отсутствии весов возвращает предобученный backbone."""
+    if not TORCH_AVAILABLE:
+        raise RuntimeError("torch/torchvision не установлены, модель эмоций недоступна")
     model = EmotionCNN(pretrained=weights_path.exists() is False)
     if weights_path.exists():
         model.load_state_dict(torch.load(weights_path, map_location=device))
@@ -37,8 +58,10 @@ def load_emotion_model(
     return model
 
 
-def predict_emotion(model: EmotionCNN, image_tensor: torch.Tensor) -> str:
+def predict_emotion(model: "EmotionCNN", image_tensor: "torch.Tensor") -> str:
     """Предсказывает доминирующую эмоцию по тензору изображения лица."""
+    if not TORCH_AVAILABLE:
+        raise RuntimeError("torch/torchvision не установлены, модель эмоций недоступна")
     with torch.no_grad():
         logits = model(image_tensor.unsqueeze(0))
         predicted_index = int(torch.argmax(logits, dim=1).item())
