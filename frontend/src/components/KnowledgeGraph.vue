@@ -33,15 +33,18 @@ function render() {
     .selectAll("line")
     .data(props.links)
     .join("line")
-    .attr("stroke", "#999");
+    .attr("stroke", "#334155")
+    .attr("stroke-width", 1.5);
 
   const node = svg
     .append("g")
     .selectAll("circle")
     .data(props.nodes)
     .join("circle")
-    .attr("r", 10)
-    .attr("fill", "#42b883");
+    .attr("r", 9)
+    .attr("fill", "#6366f1")
+    .attr("stroke", "#818cf8")
+    .attr("stroke-width", 1.5);
 
   simulation.on("tick", () => {
     link
@@ -59,5 +62,7 @@ watch(() => [props.nodes, props.links], render, { deep: true });
 </script>
 
 <template>
-  <svg ref="svgRef" width="600" height="400"></svg>
+  <div class="card overflow-hidden p-2">
+    <svg ref="svgRef" width="600" height="400" class="w-full rounded-lg bg-bg"></svg>
+  </div>
 </template>
