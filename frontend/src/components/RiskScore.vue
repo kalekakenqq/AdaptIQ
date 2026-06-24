@@ -7,23 +7,23 @@ defineProps({
 });
 
 function riskLabel(score) {
-  if (score < 0.33) return "низкий риск";
-  if (score < 0.66) return "средний риск";
-  return "высокий риск";
+  if (score < 0.33) return "Низкий риск";
+  if (score < 0.66) return "Средний риск";
+  return "Высокий риск";
 }
 
-function riskColor(score) {
-  if (score < 0.33) return "#4caf50";
-  if (score < 0.66) return "#ff9800";
-  return "#f44336";
+function badgeClass(score) {
+  if (score < 0.33) return "bg-green-500/15 text-green-400";
+  if (score < 0.66) return "bg-yellow-500/15 text-yellow-400";
+  return "bg-red-500/15 text-red-400";
 }
 </script>
 
 <template>
-  <div class="risk-score">
-    <h3>Риск провала экзамена</h3>
-    <p :style="{ color: riskColor(score) }">
-      {{ riskLabel(score) }} ({{ (score * 100).toFixed(0) }}%)
-    </p>
+  <div class="card p-5">
+    <h3 class="mb-3 text-sm font-medium text-text/70">Риск провала экзамена</h3>
+    <span :class="['inline-block rounded-full px-3 py-1 text-sm font-medium', badgeClass(score)]">
+      {{ riskLabel(score) }} · {{ (score * 100).toFixed(0) }}%
+    </span>
   </div>
 </template>
