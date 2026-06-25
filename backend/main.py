@@ -1,6 +1,8 @@
 """Точка входа FastAPI-приложения AdaptIQ."""
 
+import asyncio
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -19,7 +21,33 @@ logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-app = FastAPI(title=settings.app_name)
+
+def _warmup_ml_components() -> None:
+    """Прогревает тяжёлые ML-компоненты в фоне, не блокируя приём запросов."""
+    try:
+        from backend.services.adaptive_engine import _get_agent
+
+        _get_agent()
+        logger.info("rl-агент прогрет в фоне")
+    except Exception:
+        logger.warning("не удалось прогреть rl-агента в фоне, будет загружен по требованию")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Управляет жизненным циклом приложения: быстрый старт, тяжёлая инициализация в фоне."""
+    await init_db()
+    asyncio.get_event_loop().run_in_executor(None, _warmup_ml_components)
+
+    yield
+
+    try:
+        await close_driver()
+    except Exception:
+        logger.warning("не удалось корректно закрыть подключение к neo4j", exc_info=True)
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,21 +63,6 @@ app.include_router(sessions.router)
 app.include_router(analytics.router)
 app.include_router(reports.router)
 app.include_router(ws.router)
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    """Инициализирует базу данных при старте приложения."""
-    await init_db()
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    """Закрывает внешние подключения при остановке приложения."""
-    try:
-        await close_driver()
-    except Exception:
-        logger.warning("не удалось корректно закрыть подключение к neo4j", exc_info=True)
 
 
 @app.get("/health")
