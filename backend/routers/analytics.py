@@ -63,6 +63,31 @@ async def get_exam_prediction() -> dict:
     return {"weeks": weeks, "probability": probability, "current_week": 5}
 
 
+# синтетические кластеры студентов (симуляция UMAP + K-Means)
+STUDENT_CLUSTERS = [
+    {"name": "Иванов А.", "x": 0.18, "y": 0.82, "cluster": 0},
+    {"name": "Петрова М.", "x": 0.24, "y": 0.76, "cluster": 0},
+    {"name": "Сидоров К.", "x": 0.12, "y": 0.88, "cluster": 0},
+    {"name": "Кузнецова О.", "x": 0.31, "y": 0.79, "cluster": 0},
+    {"name": "Смирнов Д.", "x": 0.52, "y": 0.48, "cluster": 1},
+    {"name": "Волкова Е.", "x": 0.48, "y": 0.55, "cluster": 1},
+    {"name": "Морозов И.", "x": 0.58, "y": 0.51, "cluster": 1},
+    {"name": "Новикова А.", "x": 0.45, "y": 0.42, "cluster": 1},
+    {"name": "Фёдоров С.", "x": 0.61, "y": 0.46, "cluster": 1},
+    {"name": "Зайцев П.", "x": 0.82, "y": 0.19, "cluster": 2},
+    {"name": "Орлова Т.", "x": 0.78, "y": 0.26, "cluster": 2},
+    {"name": "Лебедев В.", "x": 0.88, "y": 0.14, "cluster": 2},
+]
+
+CLUSTER_LABELS = {0: "Сильные", 1: "Средние", 2: "Слабые"}
+
+
+@router.get("/clusters")
+async def get_clusters() -> dict:
+    """Возвращает кластеры студентов по поведенческим паттернам (симуляция UMAP)."""
+    return {"clusters": STUDENT_CLUSTERS, "labels": CLUSTER_LABELS}
+
+
 @router.get("/risk/{student_id}", response_model=StudentAnalyticsRead | None)
 async def get_risk_score(
     student_id: uuid.UUID, db: AsyncSession = Depends(get_db)
