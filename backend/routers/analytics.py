@@ -88,6 +88,19 @@ async def get_clusters() -> dict:
     return {"clusters": STUDENT_CLUSTERS, "labels": CLUSTER_LABELS}
 
 
+@router.get("/xai-explanation/{session_id}")
+async def get_xai_explanation(session_id: uuid.UUID) -> dict:
+    """Возвращает SHAP-объяснение выбора учебного материала для сессии (симуляция)."""
+    factors = [
+        {"name": "Низкий балл за тему «Пределы»", "weight": 0.35},
+        {"name": "Высокая когнитивная нагрузка на прошлом уроке", "weight": 0.27},
+        {"name": "Долгое время ответа на тестовые вопросы", "weight": 0.18},
+        {"name": "Пропущена предпосылка «Производные»", "weight": 0.12},
+        {"name": "Снижение концентрации по данным камеры", "weight": 0.08},
+    ]
+    return {"session_id": str(session_id), "factors": factors}
+
+
 @router.get("/risk/{student_id}", response_model=StudentAnalyticsRead | None)
 async def get_risk_score(
     student_id: uuid.UUID, db: AsyncSession = Depends(get_db)
