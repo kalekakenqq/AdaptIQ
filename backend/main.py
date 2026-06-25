@@ -8,9 +8,10 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from backend.config import get_settings
-from backend.database import init_db
+from backend.database import engine, init_db
 from backend.graph_db import close_driver
 from backend.routers import analytics, auth, courses, lessons, reports, sessions, ws
 
@@ -69,6 +70,19 @@ app.include_router(ws.router)
 async def health_check() -> dict[str, str]:
     """Проверка работоспособности сервиса."""
     return {"status": "ok"}
+
+
+@app.get("/api/health")
+async def api_health_check() -> dict[str, str]:
+    """Проверка работоспособности сервиса и доступности базы данных."""
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception as exc:
+        logger.warning("health check: база данных недоступна", exc_info=True)
+        db_status = str(exc)
+    return {"status": "ok", "db": db_status}
 
 
 if FRONTEND_DIST_DIR.exists():
