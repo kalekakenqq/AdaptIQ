@@ -24,10 +24,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(subject: str) -> str:
-    """Создаёт JWT-токен доступа для пользователя."""
+def create_access_token(subject: str, name: str = "", role: str = "") -> str:
+    """Создаёт JWT-токен доступа с именем и ролью пользователя в полезной нагрузке."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
-    payload = {"sub": subject, "exp": expire}
+    payload = {"sub": subject, "name": name, "role": role, "exp": expire}
     return jwt.encode(payload, settings.secret_key, algorithm="HS256")
 
 

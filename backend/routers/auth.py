@@ -49,7 +49,7 @@ async def register(data: UserCreate, db: AsyncSession = Depends(get_db)) -> User
             status.HTTP_500_INTERNAL_SERVER_ERROR, f"непредвиденная ошибка: {exc}"
         ) from exc
 
-    token = create_access_token(subject=str(user.id))
+    token = create_access_token(subject=str(user.id), name=user.full_name, role=user.role.value)
     return UserRegisterResponse(
         id=user.id,
         email=user.email,
@@ -75,5 +75,5 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)) -> Token:
         logger.warning("неудачная попытка входа: %s", data.email)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "неверный email или пароль")
 
-    token = create_access_token(subject=str(user.id))
+    token = create_access_token(subject=str(user.id), name=user.full_name, role=user.role.value)
     return Token(access_token=token)
