@@ -1,4 +1,5 @@
 <script setup>
+import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 
 import KnowledgeGraph from "../components/KnowledgeGraph.vue";
@@ -7,22 +8,14 @@ import Sidebar from "../components/Sidebar.vue";
 import { useAnalyticsStore } from "../stores/analytics";
 import { useAuthStore } from "../stores/auth";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
+
 const authStore = useAuthStore();
 const analyticsStore = useAnalyticsStore();
 
-const graphNodes = ref([
-  { id: "basics" },
-  { id: "derivatives" },
-  { id: "integrals" },
-  { id: "limits" },
-  { id: "series" },
-]);
-const graphLinks = ref([
-  { source: "basics", target: "limits" },
-  { source: "limits", target: "derivatives" },
-  { source: "derivatives", target: "integrals" },
-  { source: "integrals", target: "series" },
-]);
+const graphNodes = ref([]);
+const graphEdges = ref([]);
+const graphLoading = ref(true);
 
 const courseProgress = ref(62);
 const lessonsCompleted = ref(14);
@@ -30,18 +23,36 @@ const lessonsCompleted = ref(14);
 const cognitiveLoadIndex = computed(() => analyticsStore.cognitiveLoadIndex);
 const riskScore = computed(() => analyticsStore.riskScore?.risk_score || 0);
 
+const metrics = computed(() => [
+  { label: "Прогресс курса", value: `${courseProgress.value}%`, accent: "text-accent-light" },
+  {
+    label: "Когнитивная нагрузка",
+    value: `${(cognitiveLoadIndex.value * 100).toFixed(0)}%`,
+    accent: "text-orange-400",
+  },
+  { label: "Риск-скор", value: `${(riskScore.value * 100).toFixed(0)}%`, accent: "text-red-400" },
+  { label: "Пройдено уроков", value: lessonsCompleted.value, accent: "text-green-400" },
+]);
+
+async function loadKnowledgeGraph() {
+  graphLoading.value = true;
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/analytics/knowledge-graph`);
+    graphNodes.value = data.nodes;
+    graphEdges.value = data.edges;
+  } catch (error) {
+    console.error("Ошибка загрузки графа знаний:", error.response?.data ?? error.message);
+  } finally {
+    graphLoading.value = false;
+  }
+}
+
 onMounted(() => {
   if (authStore.user?.id) {
     analyticsStore.fetchRiskScore(authStore.user.id);
   }
+  loadKnowledgeGraph();
 });
-
-const metrics = computed(() => [
-  { label: "Прогресс курса", value: `${courseProgress.value}%`, accent: "text-accent-light" },
-  { label: "Когнитивная нагрузка", value: `${(cognitiveLoadIndex.value * 100).toFixed(0)}%`, accent: "text-orange-400" },
-  { label: "Риск-скор", value: `${(riskScore.value * 100).toFixed(0)}%`, accent: "text-red-400" },
-  { label: "Пройдено уроков", value: lessonsCompleted.value, accent: "text-green-400" },
-]);
 </script>
 
 <template>
@@ -59,7 +70,9 @@ const metrics = computed(() => [
           </div>
         </div>
 
-        <div class="card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          class="card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between"
+        >
           <div>
             <p class="text-sm text-text/60">Активный курс</p>
             <h2 class="mt-1 text-lg font-semibold text-text">Математический анализ</h2>
@@ -80,7 +93,27 @@ const metrics = computed(() => [
 
         <div>
           <h2 class="mb-3 text-sm font-medium text-text/70">Граф знаний</h2>
-          <KnowledgeGraph :nodes="graphNodes" :links="graphLinks" />
+          <div v-if="graphLoading" class="card flex h-[420px] items-center justify-center">
+            <div class="flex items-center gap-3 text-text/50">
+              <svg class="h-5 w-5 animate-spin text-accent-light" viewBox="0 0 24 24" fill="none">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8V0C5.4 0 0 5.4 0 12h4Z"
+                />
+              </svg>
+              Загрузка графа знаний...
+            </div>
+          </div>
+          <KnowledgeGraph v-else :nodes="graphNodes" :edges="graphEdges" />
         </div>
       </main>
     </div>
