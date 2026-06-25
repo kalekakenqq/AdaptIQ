@@ -8,7 +8,7 @@ import Sidebar from "../components/Sidebar.vue";
 
 Chart.register(...registerables);
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const lessonId = ref("");
 const summary = ref(null);
@@ -40,7 +40,7 @@ function riskLabel(risk) {
 }
 
 async function loadSummary() {
-  const response = await axios.get(`${API_BASE_URL}/api/reports/lesson/${lessonId.value}/summary`);
+  const response = await axios.get(`${API_BASE_URL}/reports/lesson/${lessonId.value}/summary`);
   summary.value = response.data;
 }
 

@@ -4,7 +4,7 @@ import { ref } from "vue";
 
 import { useAuthStore } from "../stores/auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 
 const authStore = useAuthStore();
 const title = ref("");
@@ -13,7 +13,7 @@ const createdCourseId = ref(null);
 
 async function createCourse() {
   const response = await axios.post(
-    `${API_BASE_URL}/api/courses?teacher_id=${authStore.user?.id}`,
+    `${API_BASE_URL}/courses?teacher_id=${authStore.user?.id}`,
     { title: title.value, description: description.value },
   );
   createdCourseId.value = response.data.id;
