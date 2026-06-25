@@ -5,8 +5,9 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
@@ -86,4 +87,14 @@ async def api_health_check() -> dict[str, str]:
 
 
 if FRONTEND_DIST_DIR.exists():
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
+    app.mount(
+        "/assets", StaticFiles(directory=FRONTEND_DIST_DIR / "assets"), name="frontend-assets"
+    )
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str) -> FileResponse:
+        """SPA fallback: отдаёт index.html для всех клиентских роутов Vue Router."""
+        index_file = FRONTEND_DIST_DIR / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "frontend not found")
