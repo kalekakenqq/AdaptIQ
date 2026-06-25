@@ -55,6 +55,14 @@ async def get_knowledge_graph() -> dict:
     return {"nodes": KNOWLEDGE_TOPICS, "edges": KNOWLEDGE_EDGES}
 
 
+@router.get("/exam-prediction")
+async def get_exam_prediction() -> dict:
+    """Возвращает прогноз вероятности сдачи экзамена по неделям (симуляция LSTM)."""
+    weeks = list(range(1, 11))
+    probability = [0.45, 0.48, 0.52, 0.51, 0.57, 0.63, 0.66, 0.71, 0.76, 0.82]
+    return {"weeks": weeks, "probability": probability, "current_week": 5}
+
+
 @router.get("/risk/{student_id}", response_model=StudentAnalyticsRead | None)
 async def get_risk_score(
     student_id: uuid.UUID, db: AsyncSession = Depends(get_db)
