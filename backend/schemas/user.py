@@ -40,3 +40,10 @@ class Token(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+
+
+class UserRegisterResponse(UserRead):
+    """Ответ на регистрацию: данные пользователя + токен для немедленного входа."""
+
+    access_token: str
+    token_type: str = "bearer"
