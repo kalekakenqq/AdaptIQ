@@ -12,6 +12,48 @@ from backend.schemas.analytics import StudentAnalyticsRead
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
+# темы курса математического анализа для графа знаний
+KNOWLEDGE_TOPICS = [
+    {"id": "limits", "label": "Пределы", "knowledge": 0.88, "importance": 5},
+    {"id": "derivatives", "label": "Производные", "knowledge": 0.81, "importance": 5},
+    {"id": "indefinite_integral", "label": "Неопределённый интеграл",
+     "knowledge": 0.62, "importance": 4},
+    {"id": "definite_integral", "label": "Определённый интеграл",
+     "knowledge": 0.55, "importance": 4},
+    {"id": "integrals", "label": "Интегралы", "knowledge": 0.49, "importance": 5},
+    {"id": "taylor_series", "label": "Ряды Тейлора", "knowledge": 0.34, "importance": 4},
+    {"id": "numeric_series", "label": "Числовые ряды", "knowledge": 0.41, "importance": 3},
+    {"id": "diff_equations", "label": "Дифференциальные уравнения",
+     "knowledge": 0.22, "importance": 5},
+    {"id": "multivar_functions", "label": "Функции нескольких переменных",
+     "knowledge": 0.28, "importance": 4},
+    {"id": "extrema", "label": "Экстремумы", "knowledge": 0.67, "importance": 3},
+    {"id": "lagrange_theorem", "label": "Теорема Лагранжа", "knowledge": 0.45, "importance": 2},
+    {"id": "newton_leibniz", "label": "Формула Ньютона-Лейбница",
+     "knowledge": 0.58, "importance": 3},
+]
+
+KNOWLEDGE_EDGES = [
+    {"source": "limits", "target": "derivatives"},
+    {"source": "derivatives", "target": "extrema"},
+    {"source": "derivatives", "target": "lagrange_theorem"},
+    {"source": "derivatives", "target": "indefinite_integral"},
+    {"source": "indefinite_integral", "target": "definite_integral"},
+    {"source": "definite_integral", "target": "integrals"},
+    {"source": "definite_integral", "target": "newton_leibniz"},
+    {"source": "integrals", "target": "diff_equations"},
+    {"source": "derivatives", "target": "taylor_series"},
+    {"source": "taylor_series", "target": "numeric_series"},
+    {"source": "derivatives", "target": "multivar_functions"},
+    {"source": "multivar_functions", "target": "extrema"},
+]
+
+
+@router.get("/knowledge-graph")
+async def get_knowledge_graph() -> dict:
+    """Возвращает узлы и связи графа знаний предметной области для визуализации D3.js."""
+    return {"nodes": KNOWLEDGE_TOPICS, "edges": KNOWLEDGE_EDGES}
+
 
 @router.get("/risk/{student_id}", response_model=StudentAnalyticsRead | None)
 async def get_risk_score(
