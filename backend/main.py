@@ -14,7 +14,16 @@ from sqlalchemy import text
 from backend.config import get_settings
 from backend.database import engine, init_db
 from backend.graph_db import close_driver
-from backend.routers import analytics, auth, courses, lessons, reports, sessions, ws
+from backend.routers import (
+    analytics,
+    auth,
+    courses,
+    lessons,
+    questions,
+    reports,
+    sessions,
+    ws,
+)
 
 FRONTEND_DIST_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
@@ -61,6 +70,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(courses.router)
 app.include_router(lessons.router)
+app.include_router(questions.router)
 app.include_router(sessions.router)
 app.include_router(analytics.router)
 app.include_router(reports.router)
