@@ -31,7 +31,11 @@ def _ensure_sqlite_directory(database_url: str) -> None:
 
 _ensure_sqlite_directory(settings.database_url)
 
-engine = create_async_engine(settings.database_url, echo=settings.debug, future=True)
+_connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+
+engine = create_async_engine(
+    settings.database_url, echo=settings.debug, future=True, connect_args=_connect_args
+)
 
 async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
