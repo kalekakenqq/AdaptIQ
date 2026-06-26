@@ -5,6 +5,7 @@ import { useRoute } from "vue-router";
 
 import { useAuthStore } from "../stores/auth";
 import { useLessonStore } from "../stores/lesson";
+import { useNotificationStore } from "../stores/notifications";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 const MEDIAPIPE_SRC = "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js";
@@ -16,6 +17,9 @@ const YAW_THRESHOLD_DEG = 30;
 const route = useRoute();
 const authStore = useAuthStore();
 const lessonStore = useLessonStore();
+const notifications = useNotificationStore();
+
+let highRiskNotified = false;
 
 const answerText = ref("");
 const questionId = ref(route.query.questionId || "");
@@ -108,6 +112,19 @@ function registerViolation(type) {
     violations.value.pop();
   }
   sendEvent(type);
+
+  if (type === "face_absent") {
+    notifications.push("⚠ Лицо не обнаружено", "warning");
+  } else if (type === "multiple_faces") {
+    notifications.push("🚨 Обнаружено несколько лиц", "error");
+  }
+
+  if (riskScore.value >= 7 && !highRiskNotified) {
+    notifications.push("🔴 Высокий риск нарушения", "error");
+    highRiskNotified = true;
+  } else if (riskScore.value < 7) {
+    highRiskNotified = false;
+  }
 }
 
 function getKeypoints(detection) {
