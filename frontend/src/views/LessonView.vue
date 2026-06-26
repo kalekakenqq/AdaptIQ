@@ -1,11 +1,14 @@
 <script setup>
+import axios from "axios";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import { useAuthStore } from "../stores/auth";
 import { useLessonStore } from "../stores/lesson";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 const MEDIAPIPE_SRC = "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js";
+const FALLBACK_QUESTION = "Найдите производную функции f(x) = x³ + 2x";
 const ANALYZE_INTERVAL_MS = 100;
 const VIOLATION_COOLDOWN_MS = 3000;
 const YAW_THRESHOLD_DEG = 30;
@@ -16,6 +19,7 @@ const lessonStore = useLessonStore();
 
 const answerText = ref("");
 const questionId = ref(route.query.questionId || "");
+const currentQuestion = ref("");
 const lastResult = ref(null);
 
 const videoRef = ref(null);
@@ -199,6 +203,7 @@ onMounted(async () => {
 
   if (lessonStore.currentSessionId) {
     connectWebSocket(lessonStore.currentSessionId);
+    await fetchQuestion(lessonStore.currentSessionId);
   }
   await initCamera();
 });
@@ -210,6 +215,19 @@ onUnmounted(() => {
   if (faceDetection) faceDetection.close?.();
   if (wsConnection) wsConnection.close();
 });
+
+async function fetchQuestion(sessionId) {
+  try {
+    const { data } = await axios.get(`${API_BASE_URL}/sessions/${sessionId}/next-question`);
+    currentQuestion.value = data.text || FALLBACK_QUESTION;
+    if (data.question_id) questionId.value = data.question_id;
+  } catch (error) {
+    if (error.response?.status !== 404) {
+      console.warn("не удалось загрузить вопрос:", error.response?.data ?? error.message);
+    }
+    currentQuestion.value = FALLBACK_QUESTION;
+  }
+}
 
 async function handleAnswerSubmit() {
   lastResult.value = await lessonStore.submitAnswer(questionId.value, answerText.value);
@@ -237,13 +255,30 @@ async function handleAnswerSubmit() {
           <h1 class="text-lg font-semibold text-text">{{ lessonStore.currentLesson?.title }}</h1>
           <p class="mt-2 text-text/70">{{ lessonStore.currentLesson?.content }}</p>
 
+          <div class="mt-5 rounded-xl bg-bg p-4">
+            <p class="text-base text-text">{{ currentQuestion }}</p>
+          </div>
+
           <textarea
             v-model="answerText"
             placeholder="Введите ваш ответ"
-            class="input-field mt-5 min-h-[120px] resize-none"
+            class="input-field mt-4 min-h-[120px] resize-none"
           ></textarea>
 
           <button class="btn-primary mt-4" @click="handleAnswerSubmit">Отправить ответ</button>
+
+          <div class="mt-4">
+            <div class="mb-1 flex items-center justify-between text-xs text-text/50">
+              <span>Вопрос {{ questionNumber }} из {{ totalQuestions }}</span>
+              <span>{{ progressPercent.toFixed(0) }}%</span>
+            </div>
+            <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-accent to-accent-light transition-all duration-200"
+                :style="{ width: `${progressPercent}%` }"
+              ></div>
+            </div>
+          </div>
 
           <p v-if="lastResult" class="mt-3 text-sm text-text/70">Оценка: {{ lastResult.score }}</p>
           <p class="mt-1 text-sm text-text/50">
