@@ -15,6 +15,12 @@ const lessonId = ref("");
 const summary = ref(null);
 const chartCanvas = ref(null);
 const loading = ref(true);
+const courseName = "Математический анализ";
+const reportDate = new Date().toLocaleDateString("ru-RU");
+
+function exportPdf() {
+  window.print();
+}
 
 const groupStats = [
   { label: "Студентов в группе", value: 24 },
@@ -84,6 +90,18 @@ onMounted(() => {
       <Navbar title="Преподавателю" />
 
       <main class="space-y-6 p-6">
+        <div class="flex justify-end">
+          <button
+            class="flex items-center gap-2 rounded-xl bg-accent/15 px-4 py-2 text-sm font-medium text-accent-light transition-all duration-200 hover:bg-accent/25"
+            @click="exportPdf"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+            </svg>
+            Экспорт PDF
+          </button>
+        </div>
+
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <template v-if="loading">
             <Skeleton v-for="n in 3" :key="n" height="h-20" />
@@ -142,5 +160,52 @@ onMounted(() => {
         </div>
       </main>
     </div>
+
+    <div id="print-report" class="print-report">
+      <h1 style="font-size: 22px; font-weight: 700">Отчёт по группе — AdaptIQ</h1>
+      <p style="margin-top: 4px">Курс: {{ courseName }}</p>
+      <p>Дата формирования: {{ reportDate }}</p>
+      <table style="margin-top: 16px; width: 100%; border-collapse: collapse">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #999; padding: 6px; text-align: left">Студент</th>
+            <th style="border: 1px solid #999; padding: 6px; text-align: left">Прогресс</th>
+            <th style="border: 1px solid #999; padding: 6px; text-align: left">Риск</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="student in students" :key="student.name">
+            <td style="border: 1px solid #999; padding: 6px">{{ student.name }}</td>
+            <td style="border: 1px solid #999; padding: 6px">{{ student.progress }}</td>
+            <td style="border: 1px solid #999; padding: 6px">{{ riskLabel(student.risk) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
+
+<style>
+.print-report {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+  .print-report {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    color: #000;
+  }
+}
+</style>
