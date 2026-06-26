@@ -42,6 +42,12 @@ const routes = [
     component: () => import("../views/Profile.vue"),
     meta: { requiresAuth: true },
   },
+  {
+    path: "/history",
+    name: "history",
+    component: () => import("../views/History.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
