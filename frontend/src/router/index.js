@@ -36,6 +36,12 @@ const routes = [
     component: () => import("../views/CourseEditor.vue"),
     meta: { requiresAuth: true },
   },
+  {
+    path: "/profile",
+    name: "profile",
+    component: () => import("../views/Profile.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
