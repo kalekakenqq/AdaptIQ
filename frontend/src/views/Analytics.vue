@@ -5,6 +5,7 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
+import Skeleton from "../components/Skeleton.vue";
 
 Chart.register(...registerables);
 
@@ -148,24 +149,27 @@ onBeforeUnmount(() => {
 
       <main class="space-y-6 p-6">
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div class="card p-5">
+          <div class="card relative p-5">
             <h2 class="mb-4 text-sm font-medium text-text/70">
               Прогноз результата экзамена (LSTM)
             </h2>
             <canvas ref="examChartRef" height="200"></canvas>
+            <Skeleton v-if="loading" height="h-full" class="absolute inset-0" />
           </div>
 
-          <div class="card p-5">
+          <div class="card relative p-5">
             <h2 class="mb-4 text-sm font-medium text-text/70">Кластеры студентов (UMAP)</h2>
             <canvas ref="clusterChartRef" height="200"></canvas>
+            <Skeleton v-if="loading" height="h-full" class="absolute inset-0" />
           </div>
         </div>
 
-        <div class="card p-5">
+        <div class="card relative p-5">
           <h2 class="mb-4 text-sm font-medium text-text/70">
             Распределение по уровням знаний
           </h2>
           <canvas ref="knowledgeChartRef" height="160"></canvas>
+          <Skeleton v-if="loading" height="h-full" class="absolute inset-0" />
         </div>
 
         <div class="card p-5">

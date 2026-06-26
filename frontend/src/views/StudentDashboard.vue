@@ -5,6 +5,7 @@ import { computed, onMounted, ref } from "vue";
 import KnowledgeGraph from "../components/KnowledgeGraph.vue";
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
+import Skeleton from "../components/Skeleton.vue";
 import { useAnalyticsStore } from "../stores/analytics";
 import { useAuthStore } from "../stores/auth";
 
@@ -16,6 +17,7 @@ const analyticsStore = useAnalyticsStore();
 const graphNodes = ref([]);
 const graphEdges = ref([]);
 const graphLoading = ref(true);
+const loading = ref(true);
 
 const courseProgress = ref(62);
 const lessonsCompleted = ref(14);
@@ -47,10 +49,11 @@ async function loadKnowledgeGraph() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (authStore.user?.id) {
-    analyticsStore.fetchRiskScore(authStore.user.id);
+    await analyticsStore.fetchRiskScore(authStore.user.id);
   }
+  loading.value = false;
   loadKnowledgeGraph();
 });
 </script>
@@ -64,10 +67,15 @@ onMounted(() => {
 
       <main class="space-y-6 p-6">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div v-for="metric in metrics" :key="metric.label" class="card p-5">
-            <p class="text-sm text-text/60">{{ metric.label }}</p>
-            <p :class="['mt-2 text-2xl font-bold', metric.accent]">{{ metric.value }}</p>
-          </div>
+          <template v-if="loading">
+            <Skeleton v-for="n in 4" :key="n" height="h-20" />
+          </template>
+          <template v-else>
+            <div v-for="metric in metrics" :key="metric.label" class="card p-5">
+              <p class="text-sm text-text/60">{{ metric.label }}</p>
+              <p :class="['mt-2 text-2xl font-bold', metric.accent]">{{ metric.value }}</p>
+            </div>
+          </template>
         </div>
 
         <div

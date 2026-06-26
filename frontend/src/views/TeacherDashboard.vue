@@ -5,6 +5,7 @@ import { onMounted, ref } from "vue";
 
 import Navbar from "../components/Navbar.vue";
 import Sidebar from "../components/Sidebar.vue";
+import Skeleton from "../components/Skeleton.vue";
 
 Chart.register(...registerables);
 
@@ -13,6 +14,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
 const lessonId = ref("");
 const summary = ref(null);
 const chartCanvas = ref(null);
+const loading = ref(true);
 
 const groupStats = [
   { label: "Студентов в группе", value: 24 },
@@ -68,6 +70,9 @@ onMounted(() => {
       plugins: { legend: { labels: { color: "#f1f5f9" } } },
     },
   });
+  setTimeout(() => {
+    loading.value = false;
+  }, 400);
 });
 </script>
 
@@ -80,10 +85,15 @@ onMounted(() => {
 
       <main class="space-y-6 p-6">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div v-for="stat in groupStats" :key="stat.label" class="card p-5">
-            <p class="text-sm text-text/60">{{ stat.label }}</p>
-            <p class="mt-2 text-2xl font-bold text-text">{{ stat.value }}</p>
-          </div>
+          <template v-if="loading">
+            <Skeleton v-for="n in 3" :key="n" height="h-20" />
+          </template>
+          <template v-else>
+            <div v-for="stat in groupStats" :key="stat.label" class="card p-5">
+              <p class="text-sm text-text/60">{{ stat.label }}</p>
+              <p class="mt-2 text-2xl font-bold text-text">{{ stat.value }}</p>
+            </div>
+          </template>
         </div>
 
         <div class="card p-5">
