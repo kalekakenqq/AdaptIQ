@@ -12,7 +12,7 @@ const links = [
 </script>
 
 <template>
-  <aside class="flex h-screen w-60 flex-col bg-card">
+  <aside class="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-card">
     <div class="flex items-center gap-2 px-6 py-6">
       <svg class="h-7 w-7 text-accent-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M9.5 2a3.5 3.5 0 0 0-3.5 3.5v1.05A3.5 3.5 0 0 0 4 9.78v1.69a3 3 0 0 0-1 2.24V16a3 3 0 0 0 3 3h.17A3.5 3.5 0 0 0 9.5 22h1a3.5 3.5 0 0 0 3.43-2.84A3.5 3.5 0 0 0 17 16v-1a3 3 0 0 0-1-2.24V11a3.5 3.5 0 0 0-2-3.16V5.5A3.5 3.5 0 0 0 10.5 2h-1Z" />
