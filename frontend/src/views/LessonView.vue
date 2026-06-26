@@ -149,37 +149,43 @@ function onFaceResults(results) {
   }
 }
 
-async function initFaceDetection() {
-  await loadMediaPipeScript();
-  faceDetection = new window.FaceDetection({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
-  });
-  faceDetection.setOptions({ model: "short", minDetectionConfidence: 0.5 });
-  faceDetection.onResults(onFaceResults);
+// загружает MediaPipe FaceDetection через CDN только после старта видео
+async function startMediaPipe() {
+  try {
+    await loadMediaPipeScript();
+    faceDetection = new window.FaceDetection({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
+    });
+    faceDetection.setOptions({ model: "short", minDetectionConfidence: 0.5 });
+    faceDetection.onResults(onFaceResults);
 
-  analyzeHandle = setInterval(async () => {
-    if (processing || !videoRef.value || videoRef.value.readyState < 2) return;
-    processing = true;
-    try {
-      await faceDetection.send({ image: videoRef.value });
-    } catch (error) {
-      console.warn("ошибка анализа кадра:", error);
-    } finally {
-      processing = false;
-    }
-  }, ANALYZE_INTERVAL_MS);
+    analyzeHandle = setInterval(async () => {
+      if (processing || !videoRef.value || videoRef.value.readyState < 2) return;
+      processing = true;
+      try {
+        await faceDetection.send({ image: videoRef.value });
+      } catch (error) {
+        console.warn("ошибка анализа кадра:", error);
+      } finally {
+        processing = false;
+      }
+    }, ANALYZE_INTERVAL_MS);
+  } catch (error) {
+    console.error("MediaPipe:", error);
+  }
 }
 
-async function startCamera() {
+async function initCamera() {
   try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    videoRef.value.srcObject = mediaStream;
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    videoRef.value.srcObject = stream;
+    mediaStream = stream;
     await videoRef.value.play();
-    cameraStatus.value = "контроль активен";
-    await initFaceDetection();
-  } catch (error) {
-    cameraStatus.value = "камера недоступна";
-    console.warn("не удалось получить доступ к камере:", error);
+    cameraStatus.value = "камера активна";
+    startMediaPipe();
+  } catch (e) {
+    cameraStatus.value = "нет доступа к камере: " + e.message;
+    console.error("камера:", e);
   }
 }
 
@@ -194,7 +200,7 @@ onMounted(async () => {
   if (lessonStore.currentSessionId) {
     connectWebSocket(lessonStore.currentSessionId);
   }
-  await startCamera();
+  await initCamera();
 });
 
 onUnmounted(() => {
@@ -271,12 +277,17 @@ async function handleAnswerSubmit() {
               playsinline
               class="h-44 w-full -scale-x-100 object-cover"
             ></video>
-            <span
-              class="absolute left-2 top-2 rounded-md bg-black/60 px-2 py-0.5 text-xs text-white"
-            >
-              {{ cameraStatus }}
-            </span>
           </div>
+          <p
+            class="mt-2 flex items-center gap-1.5 text-xs"
+            :class="cameraStatus === 'камера активна' ? 'text-green-400' : 'text-text/50'"
+          >
+            <span
+              class="inline-block h-2 w-2 rounded-full"
+              :class="cameraStatus === 'камера активна' ? 'bg-green-400' : 'bg-text/40'"
+            ></span>
+            {{ cameraStatus }}
+          </p>
         </div>
 
         <div class="card p-4">
