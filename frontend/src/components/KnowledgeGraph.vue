@@ -59,15 +59,19 @@ function render() {
   const nodes = props.nodes.map((node) => ({ ...node }));
   const edges = props.edges.map((edge) => ({ ...edge }));
 
+  const nodeRadius = (d) => 6 + d.importance * 1.5;
+
   const simulation = d3
     .forceSimulation(nodes)
     .force(
       "link",
-      d3.forceLink(edges).id((d) => d.id).distance(95),
+      d3.forceLink(edges).id((d) => d.id).distance(80),
     )
-    .force("charge", d3.forceManyBody().strength(-280))
+    .force("charge", d3.forceManyBody().strength(-200))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collide", d3.forceCollide().radius(28));
+    .force("x", d3.forceX(width / 2).strength(0.1))
+    .force("y", d3.forceY(height / 2).strength(0.1))
+    .force("collide", d3.forceCollide().radius((d) => nodeRadius(d) + 14));
 
   const link = svg
     .append("g")
@@ -129,7 +133,7 @@ function render() {
     .transition()
     .duration(700)
     .delay((d, i) => i * 40)
-    .attr("r", (d) => 9 + d.importance * 2.2);
+    .attr("r", nodeRadius);
 
   const labels = svg
     .append("g")
@@ -137,7 +141,7 @@ function render() {
     .data(nodes)
     .join("text")
     .text((d) => d.label)
-    .attr("font-size", "9px")
+    .attr("font-size", "11px")
     .attr("fill", "#cbd5e1")
     .attr("text-anchor", "middle")
     .attr("dy", -16)
@@ -146,7 +150,16 @@ function render() {
 
   labels.transition().duration(700).delay(400).style("opacity", 1);
 
+  // удерживаем узлы в границах контейнера
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
   simulation.on("tick", () => {
+    nodes.forEach((d) => {
+      const r = nodeRadius(d) + 2;
+      d.x = clamp(d.x, r, width - r);
+      d.y = clamp(d.y, r + 14, height - r);
+    });
+
     link
       .attr("x1", (d) => d.source.x)
       .attr("y1", (d) => d.source.y)
