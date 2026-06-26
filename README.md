@@ -7,8 +7,14 @@
 ![Neo4j](https://img.shields.io/badge/Neo4j-graph%20db-008CC1?logo=neo4j)
 ![CI](https://github.com/kalekakenqq/adaptiq/actions/workflows/ci.yml/badge.svg)
 ![Coverage](https://img.shields.io/badge/coverage-70%25%2B-brightgreen)
+![Stars](https://img.shields.io/github/stars/kalekakenqq/AdaptIQ?style=social)
+![Forks](https://img.shields.io/github/forks/kalekakenqq/AdaptIQ?style=social)
+![Issues](https://img.shields.io/github/issues/kalekakenqq/AdaptIQ)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 **AdaptIQ** — мультимодальная адаптивная образовательная платформа с искусственным интеллектом.
+
+🚀 **Живое демо:** [adaptiq-scalevillain.amvera.io](https://adaptiq-scalevillain.amvera.io)
 
 ## Описание проекта и научная новизна
 
@@ -118,6 +124,37 @@ docker-compose up --build
 
 Backend будет доступен на `http://localhost:8000`, frontend — на `http://localhost:5173`.
 
+## Запуск локально (без Docker)
+
+Backend:
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn backend.main:app --reload --port 8000
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+По умолчанию backend использует SQLite (`/data/adaptiq.db`), поэтому отдельный
+PostgreSQL для локального запуска не требуется. Neo4j и Redis опциональны — при их
+отсутствии соответствующие функции корректно отключаются.
+
+## API документация
+
+FastAPI автоматически генерирует интерактивную документацию (Swagger UI):
+
+- **Swagger UI:** [`/docs`](https://adaptiq-scalevillain.amvera.io/docs)
+- **ReDoc:** [`/redoc`](https://adaptiq-scalevillain.amvera.io/redoc)
+- **Проверка состояния:** [`/api/health`](https://adaptiq-scalevillain.amvera.io/api/health)
+
 ## Структура проекта
 
 ```
@@ -134,13 +171,21 @@ adaptiq/
 
 | Метод | Путь | Описание |
 |---|---|---|
-| POST | `/api/auth/register` | регистрация пользователя |
-| POST | `/api/auth/login` | вход и получение JWT |
+| POST | `/api/auth/register` | регистрация пользователя (rate limit 5/мин) |
+| POST | `/api/auth/login` | вход и получение JWT (rate limit 5/мин) |
+| GET | `/api/users/me` | профиль текущего пользователя и статистика |
 | GET | `/api/courses` | список курсов |
 | GET | `/api/lessons/{id}` | получение урока |
+| POST | `/api/questions` | создание вопроса к уроку |
 | POST | `/api/sessions/{id}/answer` | отправка ответа на вопрос |
+| GET | `/api/sessions/history` | история сессий пользователя |
 | GET | `/api/analytics/risk/{student_id}` | риск-оценка студента |
+| GET | `/api/analytics/knowledge-graph` | граф знаний для D3.js |
+| GET | `/api/analytics/exam-prediction` | прогноз сдачи экзамена (LSTM) |
+| GET | `/api/analytics/clusters` | кластеры студентов (UMAP) |
+| GET | `/api/analytics/xai-explanation/{id}` | SHAP-объяснение решения |
 | WS | `/ws/session/{id}` | стрим CV-аналитики в реальном времени |
+| WS | `/ws/{id}` | события прокторинга с камеры |
 
 ## Демо
 
