@@ -2,9 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-bg: 15 23 42;
+  --color-card: 30 41 59;
+  --color-text: 241 245 249;
+}
+
+.light {
+  --color-bg: 255 255 255;
+  --color-card: 241 245 249;
+  --color-text: 15 23 42;
+}
+
 @layer base {
   body {
     @apply bg-bg text-text font-sans antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 

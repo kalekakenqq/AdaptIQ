@@ -4,14 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "#0f172a",
-        card: "#1e293b",
+        bg: "rgb(var(--color-bg) / <alpha-value>)",
+        card: "rgb(var(--color-card) / <alpha-value>)",
         accent: {
           DEFAULT: "#6366f1",
           light: "#818cf8",
         },
         text: {
-          DEFAULT: "#f1f5f9",
+          DEFAULT: "rgb(var(--color-text) / <alpha-value>)",
         },
       },
       fontFamily: {
