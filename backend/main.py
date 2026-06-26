@@ -2,10 +2,11 @@
 
 import asyncio
 import logging
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -35,6 +36,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
+
+# отдельный логгер доступа, пишущий в файл /data/access.log
+access_logger = logging.getLogger("adaptiq.access")
+access_logger.setLevel(logging.INFO)
+try:
+    _log_path = Path("/data/access.log")
+    _log_path.parent.mkdir(parents=True, exist_ok=True)
+    _file_handler = logging.FileHandler(_log_path, encoding="utf-8")
+    _file_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+    access_logger.addHandler(_file_handler)
+except OSError:
+    logger.warning("не удалось открыть /data/access.log, логирование запросов в файл отключено")
 
 
 def _warmup_ml_components() -> None:
@@ -66,6 +79,25 @@ app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Логирует каждый HTTP-запрос: метод, путь, статус и длительность."""
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+    client = request.client.host if request.client else "-"
+    access_logger.info(
+        "%s %s %s %s %.1fms",
+        client,
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+    )
+    return response
+
 
 app.add_middleware(
     CORSMiddleware,
