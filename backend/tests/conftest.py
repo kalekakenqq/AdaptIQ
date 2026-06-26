@@ -1,14 +1,22 @@
 """Общие фикстуры для тестов backend."""
 
-from collections.abc import AsyncGenerator
+import os
 
-import pytest
-import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+os.environ["RATE_LIMIT_ENABLED"] = "false"
 
-from backend.database import Base, get_db
-from backend.main import app
+from collections.abc import AsyncGenerator  # noqa: E402
+
+import pytest  # noqa: E402
+import pytest_asyncio  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy.ext.asyncio import (  # noqa: E402
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+
+from backend.database import Base, get_db  # noqa: E402
+from backend.main import app  # noqa: E402
 
 
 @pytest_asyncio.fixture

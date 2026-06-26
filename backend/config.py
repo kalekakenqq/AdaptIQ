@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/2"
 
+    rate_limit_enabled: bool = True
+    rate_limit_auth: str = "5/minute"
+
     ml_device: str = "cpu"
     rubert_model_name: str = "DeepPavlov/rubert-base-cased"
     sentence_transformer_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
