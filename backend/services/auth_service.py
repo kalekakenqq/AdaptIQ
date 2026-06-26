@@ -1,17 +1,22 @@
 """Сервис аутентификации и работы с JWT-токенами."""
 
+import uuid
 from datetime import datetime, timedelta, timezone
 
-from jose import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.config import get_settings
+from backend.database import get_db
 from backend.models.user import User
 
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+bearer_scheme = HTTPBearer(auto_error=True)
 
 
 def hash_password(password: str) -> str:
@@ -37,4 +42,25 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     user = result.scalar_one_or_none()
     if user is None or not verify_password(password, user.hashed_password):
         return None
+    return user
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """Возвращает текущего пользователя по JWT-токену из заголовка Authorization."""
+    invalid = HTTPException(status.HTTP_401_UNAUTHORIZED, "недействительный токен")
+    try:
+        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=["HS256"])
+        subject = payload.get("sub")
+        if subject is None:
+            raise invalid
+        user_id = uuid.UUID(subject)
+    except (JWTError, ValueError) as exc:
+        raise invalid from exc
+
+    user = await db.get(User, user_id)
+    if user is None:
+        raise invalid
     return user
